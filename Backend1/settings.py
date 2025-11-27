@@ -11,7 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -39,8 +39,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'corsheaders',
     'rest_framework',
-    #'drf_spectacular'
-    'task'
+    'drf_spectacular',
+    'task',
 ]
 
 MIDDLEWARE = [
@@ -134,4 +134,17 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 #cors autherization
 CORS_ALLOWED_ORIGINS = []
 
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
+REST_FRAMEWORK = {
+    # CORRECTO: Esto le dice a Django que use Spectacular para generar el esquema de la API
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+}
+
+SPECTACULAR_SETTINGS = {
+    'TITLE': 'Consultorio_Dental API',
+    'DESCRIPTION': 'API de administración de consultorio dental',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}

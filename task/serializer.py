@@ -1,8 +1,8 @@
 from rest_framework import serializers
 from .models import Administrador, Doctor, Paciente, Cita, HistorialMedico, Tratamiento
+from .models import Odontograma, Diente
 
 
-# --- SERIALIZERS DE USUARIOS ---
 
 class AdministradorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -52,3 +52,19 @@ class TratamientoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tratamiento
         fields = '__all__'
+
+
+
+class DienteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Diente
+        fields = '__all__' # Enviará cara_oclusal, cara_mesial, etc.
+
+
+class OdontogramaSerializer(serializers.ModelSerializer):
+    # Esto mostrará la lista completa de dientes dentro del odontograma
+    dientes = DienteSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Odontograma
+        fields = ['id', 'paciente', 'fecha_creacion', 'observaciones_generales', 'dientes']

@@ -1,11 +1,13 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 # modelos y serializers
-from .models import Administrador, Doctor, Paciente, Cita, HistorialMedico, Tratamiento
+from .models import Administrador, Doctor, Paciente, Cita, HistorialMedico, Tratamiento, Odontograma, Diente
 # chatBot
 from rest_framework.views import APIView
 from django.utils import timezone
 import re
+
+
 
 from .serializer import (
 AdministradorSerializer,
@@ -13,11 +15,76 @@ DoctorSerializer,
 PacienteSerializer,
 CitaSerializer,
 HistorialMedicoSerializer,
-TratamientoSerializer
+TratamientoSerializer,
+OdontogramaSerializer,
+DienteSerializer
 )
 
 # Create your views here.
+class LoginView(APIView):
+    def post(self, request):
+        email = request.data.get('email', '').strip()
+        password = request.data.get('password', '').strip()
 
+        if not email or not password:
+            return Response({'error': 'Faltan credenciales'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user_data = None
+        rol = None
+
+        # 1. BUSCAR EN ADMINISTRADORES
+        try:
+            admin_user = Administrador.objects.get(email=email)
+            # Aquí idealmente usaríamos: if check_password(password, admin_user.password_hash):
+            if admin_user.password_hash == password: # Comparación simple (temporal)
+                user_data = {'id': admin_user.id, 'nombre': admin_user.nombre, 'apellido': admin_user.apellido}
+                rol = admin_user.rol # 'SuperAdmin' o 'Recepcionista'
+        except Administrador.DoesNotExist:
+            pass
+
+        # 2. SI NO ES ADMIN, BUSCAR EN DOCTORES
+        if not user_data:
+            try:
+                doctor = Doctor.objects.get(email=email)
+                if doctor.password_hash == password:
+                    if not doctor.activo:
+                        return Response({'error': 'Cuenta de doctor inactiva'}, status=status.HTTP_403_FORBIDDEN)
+                    user_data = {'id': doctor.id, 'nombre': doctor.nombre, 'apellido': doctor.apellido, 'especialidad': doctor.especialidad}
+                    rol = 'Doctor'
+            except Doctor.DoesNotExist:
+                pass
+
+        # 3. SI NO ES DOCTOR, BUSCAR EN PACIENTES
+        if not user_data:
+            try:
+                paciente = Paciente.objects.get(email=email)
+                if paciente.password_hash == password:
+                    user_data = {'id': paciente.id, 'nombre': paciente.nombre, 'apellido': paciente.apellido}
+                    rol = 'Paciente'
+            except Paciente.DoesNotExist:
+                pass
+
+        # RESULTADO FINAL
+        if user_data:
+            return Response({
+                'success': True,
+                'rol': rol,
+                'user': user_data,
+                'token': 'demo-token-12345' # Aquí en el futuro pondrías un JWT real
+            }, status=status.HTTP_200_OK)
+        else:
+            return Response({'error': 'Credenciales inválidas'}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+
+
+class OdontogramaViewSet(viewsets.ModelViewSet):
+    queryset = Odontograma.objects.all()
+    serializer_class = OdontogramaSerializer
+
+class DienteViewSet(viewsets.ModelViewSet):
+    queryset = Diente.objects.all()
+    serializer_class = DienteSerializer
 class AdministradorViewSet(viewsets.ModelViewSet):
     queryset = Administrador.objects.all()
     serializer_class = AdministradorSerializer
