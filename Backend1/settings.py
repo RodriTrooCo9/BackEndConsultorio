@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-d1v$_+no4=2=h^58u83ynb&p6lb!y1-xt521ex=z@80na6&m8n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    '0.0.0.0',
+    'localhost',
+    '127.0.0.1',
+]
 
 
 # Application definition
@@ -81,10 +85,10 @@ WSGI_APPLICATION = 'Backend1.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'Consultorio_Dental',
-        'USER': 'postgres',
-        'PASSWORD': '1878130',
-        'HOST': 'localhost',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
